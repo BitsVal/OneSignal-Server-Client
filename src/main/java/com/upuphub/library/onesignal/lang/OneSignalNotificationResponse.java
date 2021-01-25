@@ -33,7 +33,6 @@ package com.upuphub.library.onesignal.lang;
 public class OneSignalNotificationResponse extends NotificationResponse{
     private NotificationResponseCode error;
     private int httpStatusCode;
-    private String requestId;
     private String responseBody;
     private Throwable cause;
 
@@ -63,7 +62,6 @@ public class OneSignalNotificationResponse extends NotificationResponse{
         final StringBuffer sb = new StringBuffer("OneSignalNotificationResponse{");
         sb.append("error=").append(error);
         sb.append(", httpStatusCode=").append(httpStatusCode);
-        sb.append(", requestId='").append(requestId).append('\'');
         sb.append(", responseBody='").append(responseBody).append('\'');
         sb.append(", cause=").append(cause);
         sb.append(", NotificationResponse=").append(super.toString());

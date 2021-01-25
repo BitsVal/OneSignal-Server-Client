@@ -36,7 +36,9 @@ import com.upuphub.library.onesignal.lang.OneSignalNotificationResponse;
  **/
 public interface OneSignalClient {
     /**
-     * @return 判断是否是异步执行
+     * 是否是异步的返回判断
+     *
+     * @return 是否是异步的返回判断
      */
     boolean isAsync();
 
@@ -48,5 +50,11 @@ public interface OneSignalClient {
      */
     OneSignalNotificationResponse push(OneSignalNotification oneSignalNotification);
 
+    /**
+     * 异步发送OneSignal Push 消息
+     *
+     * @param oneSignalNotification OneSignal Push内容
+     * @param callback 发送的Push消息的发送返回回调
+     */
     void push(OneSignalNotification oneSignalNotification, OneSignalNotificationCallback callback);
 }

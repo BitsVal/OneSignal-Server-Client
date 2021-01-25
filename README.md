@@ -8,8 +8,185 @@
 
 
 
+- [x] Create Notification iOS
+- [ ] Cancel Notification
+- [ ] View Apps
+- [ ] ........
+
+## 引入和使用
+
+```xml
+    <dependency>
+        <groupId>com.upuphub.library</groupId>
+        <artifactId>onesignal-server</artifactId>
+        <version>1.0.0</version>
+    </dependency>
+```
+- 同步调用
+```java
+public class demo {
+    public void demoSyncNotificationToExternalUser() {
+        OneSignalClient oneSignalClient = OneSignalClientBuilder
+                .newBuilder("APP-ID","REST-APP-TOKEN")
+                .build();
+        OneSignalNotification oneSignalNotification = new OneSignalNotification();
+        oneSignalNotification.setIncludePlayerIds(Arrays.asList("6392d91a-b206-4b7b-a620-cd68e32c3a76", "76ece62b-bcfe-468c-8a78-839aeaa8c5fa", "8e0f21fa-9a5a-4ae7-a9a6-ca1f24294b86"));
+        oneSignalNotification.setData(Collections.singletonMap("foo", "bar"));
+        oneSignalNotification.setContents(Collections.singletonMap(LANGUAGES.ENGLISH.VALUE(), "English Message"));
+        oneSignalNotification.setToIos(true);
+        OneSignalNotificationResponse response = oneSignalClient.push(oneSignalNotification);
+        System.out.println(response);
+    }
+}
+```
+- 异步调用
+```java
+public class demo {
+    public void demoAsyncNotificationToExternalUser() {
+        OneSignalClient oneSignalClient = OneSignalClientBuilder
+            .newBuilder("APP-ID","REST-APP-TOKEN")
+            .setAsync(true)
+            .build();
+        OneSignalNotification oneSignalNotification = new OneSignalNotification()
+            .setIncludeExternalUserIds(Collections.singletonList("testExternalUserId"))
+            .setChannelForExternalUserIds(EXTERNAL_CHANNEL.PUSH.VALUE())
+            .setData(Collections.singletonMap("key","value"))
+            .setIosAttachments(Collections.singletonMap("id1","https://img.upuphub.com/a9996a4a4c70b1f8eb3096b0e215f0ac.jpg"))
+            .setHeadings(Collections.singletonMap(LANGUAGES.ENGLISH.VALUE(),"image 1"))
+            .setContents(Collections.singletonMap(LANGUAGES.ENGLISH.VALUE(),"XXXXX"))
+            .setSubtitle(Collections.singletonMap(LANGUAGES.ENGLISH.VALUE(),"ios 10+ subtitle"))
+            .setToIos(true);
+        oneSignalClient.push(oneSignalNotification, new OneSignalNotificationCallback() {
+            @Override
+            public void onSuccess(OneSignalNotification notification, OneSignalNotificationResponse response) {
+                System.out.println(response);
+            }
+
+            @Override
+            public void onFailure(OneSignalNotification notification, OneSignalNotificationResponse response) {
+                System.out.println(response);
+            }
+        });
+    }
+}
+```
+
+## OneSignalClient Builder Config
+
+```java
+public class OneSignalClientBuilder {
+    private final String authKey;
+    private final String appId;
+    private boolean async;
+    private String apiUrl = Constants.DEFAULT_ONESIGNAL_API_URL;
+
+    private TimeUnit timeUnit = TimeUnit.SECONDS;
+    private Integer readTimeout = 5;
+    private Integer connectTimeout = 5;
+
+    private OkHttpClient okHttpClient;
+    private ConnectionPool connectionPool;
+
+    private Integer maxIdleConnections = 10;
+    private Integer keepAliveDuration = 600;
+    private Integer maxRetryCount = 0;
+
+    private List<Interceptor> interceptors;
+    private List<Interceptor> netWorkingInterceptors;
+
+    private EventListener eventListener;
+}
+```
+
+| Builder Key            | 说明                   |
+| ---------------------- | ---------------------- |
+| authKey                | Rest Api Token         |
+| appId                  | OneSignal App Id       |
+| async                  | 异步模式 默认同步      |
+| apiUrl                 | OneSignal Api Root Url |
+| timeUnit               | 时间单位               |
+| readTimeout            | 读超时时间             |
+| connectTimeout         | 连接超时时间           |
+| connectionPool         | 连接池                 |
+| maxIdleConnections     | 最大连接数             |
+| keepAliveDuration      | 保活连接数             |
+| maxRetryCount          | 最大重试次数           |
+| interceptors           | 请求拦截器             |
+| netWorkingInterceptors | 网络拦截器             |
+| eventListener          | 事件监听器             |
+
+## OneSignalClient Interface Api
+
+````java
+/**
+ * Interface for general purpose OneSignal Message Client
+ *
+ * @author Inspiration S.P.A Leo
+ * @date create time 2021-01-15 15:39
+ **/
+public interface OneSignalClient {
+    /**
+     * 是否是异步的返回判断
+     * 
+     * @return 是否是异步的返回判断
+     */
+    boolean isAsync();
+
+    /**
+     * 同步发送OneSignal Push 消息
+     *
+     * @param oneSignalNotification OneSignal Push内容
+     * @return 发送的Push消息的发送返回结果
+     */
+    OneSignalNotificationResponse push(OneSignalNotification oneSignalNotification);
+
+    /**
+     * 异步发送OneSignal Push 消息
+     * 
+     * @param oneSignalNotification OneSignal Push内容
+     * @param callback 发送的Push消息的发送返回回调
+     */
+    void push(OneSignalNotification oneSignalNotification, OneSignalNotificationCallback callback);
+}
+
+````
+
 ## OneSignal Server Rest Api Reference
 
+### Create Notification
+`OneSignalNotification` 常用参数和说明
+
+#### Send to Specific Devices
+You may also target specific devices. Targeting devices is typically used in two ways:
+
+For notifications that target individual users, such as if they've received a message from someone.
+
+For apps that wish to manage their own segments, such as tracking a user's followers and sending notifications to them when that user posts.
+
+When targeting specific devices, you may use any of the following parameters together:
+
+
+
+| Parameter                 | Type         | Description                                                  |
+| ------------------------- | ------------ | ------------------------------------------------------------ |
+| include_player_ids        | array_string | Specific player*ids to send your notification to. _Does not require API Auth Key.* Do not combine with other targeting parameters. Not compatible with any other targeting parameters.Example: `["1dd608f2-c6a1-11e3-851d-000c2940e62c"]` |
+| include_external_user_ids | array_string | Target specific devices by custom user IDs assigned via API.Not compatible with any other targeting parameters,Example: `[“custom-id-assigned-by-api”]` **REQUIRED**: *REST API Key Authentication*,*Limit of 2,000 entries per REST API call.* |
+
+####  Common Parameters
+
+| Parameter       | Type          | Platform   | Description                                                  |
+| --------------- | ------------- | ---------- | ------------------------------------------------------------ |
+| app_id          | string        | All        | **Required:** Your OneSignal Application ID, which can be found in [Keys & IDs](https://documentation.onesignal.com/docs/accounts-and-keys).It is a UUID and looks similar to `8250eaf6-1a58-489e-b136-7c74a864b434`. |
+| external_id     | string (UUID) | All        | Correlation and idempotency key.A request received with this parameter will first look for another notification with the same `external_id`. If one exists, a notification will not be sent, and result of the previous operation will instead be returned. Therefore, if you plan on using this feature, it's important to use a good source of randomness to generate the UUID passed here.**This key is only idempotent for 30 days.** After 30 days, the notification could be removed from our system and a notification with the same `external_id` will be sent again. |
+| contents        | object        | All - Push | Required unless `content_available=true` or `template_id` is set. The notification's content (excluding the title), a map of language codes to text for each language.Each hash must have a language code string for a key, mapped to the localized text you would like users to receive for that language.<br/>**This field supports [inline substitutions](https://documentation.onesignal.com/docs/personalization).**<br/>**English must be included in the hash**.Example: `{"en": "English Message", "es": "Spanish Message"}` |
+| headings        | object        | All - Push | The notification's title, a map of language codes to text for each language. Each hash must have a language code string for a key, mapped to the localized text you would like users to receive for that language.**This field supports [inline substitutions](https://documentation.onesignal.com/docs/personalization).**Example: `{"en": "English Title", "es": "Spanish Title"}` |
+| subtitle        | object        | iOS 10+    | The notification's subtitle, a map of language codes to text for each language. Each hash must have a language code string for a key, mapped to the localized text you would like users to receive for that language.**This field supports [inline substitutions](https://documentation.onesignal.com/docs/personalization).**Example: `{"en": "English Subtitle", "es": "Spanish Subtitle"}` |
+| template_id     | string        | All        | Use a template you setup on our dashboard. The template_id is the UUID found in the URL when viewing a template on our dashboard.Example: `be4a8044-bbd6-11e4-a581-000c2940e62c` |
+| data            | object        | All        | A custom map of data that is passed back to your app. Same as using [Additional Data](https://documentation.onesignal.com/docs/sending-notifications#advanced-settings) within the dashboard. Can use up to `2048` bytes of data.Example: `{"abc": 123, "foo": "bar", "event_performed": true, "amount": 12.1}` |
+| url             | string        | All        | The URL to open in the browser when a user clicks on the notification.Example: `https://onesignal.com`Note: iOS needs https or updated NSAppTransportSecurity in plist.**This field supports [inline substitutions](https://documentation.onesignal.com/docs/personalization).**Omit if including `web_url` or `app_url` |
+| ios_attachments | object        | iOS 10+    | Adds media attachments to notifications. Set as JSON object, key as a media id of your choice and the value as a valid local filename or URL. User must press and hold on the notification to view.Do not set `mutable_content` to download attachments. The OneSignal SDK does this automatically.Example: `{"id1": "https://domain.com/image.jpg"}` |
+| isIos           | boolean       | iOS        | Indicates whether to send to all devices registered under your app's Apple iOS platform. |
+| isAndroid       | boolean       | Android    | Indicates whether to send to all devices registered under your app's Google Android platform. |
 
 
 ## Rate Limits & Disabled Apps
